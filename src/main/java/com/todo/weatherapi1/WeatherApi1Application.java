@@ -17,8 +17,7 @@ public class WeatherApi1Application {
 
     public static void main(String[] args) {
         SpringApplication.run(WeatherApi1Application.class, args);
-        Jedis jedis = new Jedis("redis://default:CO0DvI2llLI5HGfDqMO544KbpAgLZHk3@redis-18229.c84.us-east-1-2.ec2.redns.redis-cloud.com:18229");
-        Connection connection = jedis.getConnection();
+
 
     }
 

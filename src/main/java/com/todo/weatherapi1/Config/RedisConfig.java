@@ -37,17 +37,16 @@ public class RedisConfig {
 
     @Value("${spring.data.redis.password}")
     private String redisPassword;
-    @Value("${spring.data.redis.uri}")
-    private String redisUriString;
+
 
     @Bean(name = "customRedisConnectionFactory")
     public JedisConnectionFactory redisConnectionFactory()
     {
         RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration();
-        redisConfig.setHostName("redis-18229.c84.us-east-1-2.ec2.redns.redis-cloud.com");
-        redisConfig.setPort(18229);
-        redisConfig.setUsername("default");
-        redisConfig.setPassword("CO0DvI2llLI5HGfDqMO544KbpAgLZHk3");
+        redisConfig.setHostName(redisHost);
+        redisConfig.setPort(redisPort);
+        redisConfig.setUsername(redisUsername);
+        redisConfig.setPassword(redisPassword);
 
         return new JedisConnectionFactory(redisConfig);
     }
