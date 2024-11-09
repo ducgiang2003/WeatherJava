@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -40,6 +41,18 @@ public class WeatherService {
 
         logger.info("URL called: "+url);
 
+        WeatherResponse cachedData = getWeatherRedis(place);
+
+
+        //Get cached data if it already exist in cahce
+        if (cachedData == null) {
+            logger.info("No data found in cache for place: " + place);
+
+        } else {
+            logger.info("Data found in cache for place: " + place);
+            return cachedData;
+        }
+
         Map<String,Object> map = restTemplate.getForObject(url, Map.class);
 
         List<Map<String,Object>> days = (List<Map<String, Object>>) map.getOrDefault("days",new ArrayList<>());
@@ -54,10 +67,15 @@ public class WeatherService {
             String dateTime = (String) day.get("datetime");
 
             WeatherResponse currentInfo = new WeatherResponse(country,temperature,description,dateTime);
-            logger.info("Weather Details: "+currentInfo);
+
             weatherDetails.add(currentInfo);
 
         }
+        if (weatherDetails.isEmpty()) {
+            logger.info("No weather details found for place: " + place);
+            return null;
+        }
+
         saveWeather(country,weatherDetails.get(0));
         logger.info("Weather Details: "+weatherDetails.get(0));
 
@@ -65,9 +83,10 @@ public class WeatherService {
 
     }
 
+    //opsForValue() can setting TTL for the key
     public void saveWeather(String key , WeatherResponse value){
 
-       redisTemplate.opsForValue().set(key, value);
+        redisTemplate.opsForValue().set(key, value, Duration.ofDays(1));
 
    }
    public WeatherResponse getWeatherRedis(String country){

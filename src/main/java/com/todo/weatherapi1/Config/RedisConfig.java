@@ -10,8 +10,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import org.springframework.data.redis.connection.RedisConfiguration;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
+import org.springframework.data.redis.connection.lettuce.LettuceClientConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.repository.configuration.EnableRedisRepositories;
@@ -40,24 +42,29 @@ public class RedisConfig {
 
 
     @Bean(name = "customRedisConnectionFactory")
-    public JedisConnectionFactory redisConnectionFactory()
+    public RedisConnectionFactory redisConnectionFactory()
     {
         RedisStandaloneConfiguration redisConfig = new RedisStandaloneConfiguration();
         redisConfig.setHostName(redisHost);
         redisConfig.setPort(redisPort);
         redisConfig.setUsername(redisUsername);
         redisConfig.setPassword(redisPassword);
+        LettuceClientConfiguration clientConfig = LettuceClientConfiguration.builder()
+                .commandTimeout(Duration.ofMinutes(5))  // Thời gian chờ là 3 giây
+                .build();
 
-        return new JedisConnectionFactory(redisConfig);
+        return new LettuceConnectionFactory(redisConfig, clientConfig);
     }
     @Bean
-  public RedisTemplate<String, WeatherResponse> redisTemplate(@Qualifier("customRedisConnectionFactory") JedisConnectionFactory connectionFactory) {
+    public RedisTemplate<String, WeatherResponse> redisTemplate(@Qualifier("customRedisConnectionFactory") RedisConnectionFactory connectionFactory) {
      RedisTemplate<String, WeatherResponse> template = new RedisTemplate<>();
 
         // Set up RedisTemplate
+
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+
         return template;
   }
     @Bean
